@@ -208,6 +208,23 @@ function initPhotoSwipeFromDOM(gallerySelector) {
                                     qrCaption.textContent = qrShortText;
                                     qrWrapper.append(qrCaption);
                                 }
+                                if (config.collage.video_enabled) {
+                                    const qrVideo = document.createElement('img');
+                                    qrVideo.src =
+                                        environment.publicFolders.api +
+                                        '/qrcode.php?filename=' +
+                                        pswp.currSlide.data.src.split('\\').pop().split('/').pop().split('.').shift() +
+                                        '.mp4';
+                                    qrVideo.alt = 'QR-Code';
+                                    qrVideo.classList.add('pswp-qrcode__image');
+                                    qrWrapper.append(qrVideo);
+
+                                    const qrVideoShortText = config.qr.video_short_text;
+                                    const qrVideoCaption = document.createElement('p');
+                                    qrVideoCaption.classList.add('pswp-qrcode__caption');
+                                    qrVideoCaption.textContent = qrVideoShortText;
+                                    qrWrapper.append(qrVideoCaption);
+                                }
                             });
                         }
                     },

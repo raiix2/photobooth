@@ -176,9 +176,9 @@ class PhotoboothCapture
      */
     public function returnData(): array
     {
-        if ($this->style === 'collage') {
+        if ($this->style === 'collage' || $this->style === 'collagevideo') {
             $data = [
-                'success' => 'collage',
+                'success' => $this->style,
                 'file' => $this->fileName,
                 'collage_file' => $this->collageSubFile,
                 'current' => $this->collageNumber,

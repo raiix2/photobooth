@@ -4,30 +4,55 @@ use Photobooth\Enum\FolderEnum;
 use Photobooth\Service\ApplicationService;
 use Photobooth\Service\LanguageService;
 use Photobooth\Utility\PathUtility;
+use Photobooth\Service\DatabaseManagerService;
 
 require_once __DIR__ . '/lib/boot.php';
 
 $imageParam = $_GET['image'] ?? '';
+if($imageParam === 'latest' && $config['collage']['video_enabled']) {
+    $isLatest = true;
+    $database = DatabaseManagerService::getInstance();
+    if ($config['database']['enabled']) {
+        $images = $database->getContentFromDB();
+    } else {
+        $images = $database->getFilesFromDirectory();
+    }
+    $images = array_reverse($images);
+   $imageParam = $images[0];
+   $filename = strtolower(pathinfo($imageParam, PATHINFO_FILENAME));
+   $latestImageUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.jpg&inline=1');
+   $latestVideoUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.mp4&inline=1');
+   $latestImageQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.jpg');
+   $latestImageQrCodeLabel = trim((string) ($config['qr']['short_text'] ?? ''));
+   $latestVideoQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.mp4');
+   $latestVideoQrCodeLabel = trim((string) ($config['qr']['video_short_text'] ?? ''));
+}
+else $isLatest = false;
 $image = basename((string) $imageParam);
+
 
 if ($image === '') {
     http_response_code(400);
-    echo 'No image specified.';
+    echo 'No image or video specified.';
     exit();
 }
 
-$imagePath = FolderEnum::IMAGES->absolute() . DIRECTORY_SEPARATOR . $image;
+
+$extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+$isVideo = in_array($extension, ['mp4', 'mov', 'webm'], true);
+
+$imagePath = ($isVideo ? FolderEnum::VIDEOS->absolute() : FolderEnum::IMAGES->absolute()) . DIRECTORY_SEPARATOR . $image;
+  
 if (!is_file($imagePath)) {
     http_response_code(404);
     echo 'Image not found.';
     exit();
 }
 
-$extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
-$isVideo = in_array($extension, ['mp4', 'mov', 'webm'], true);
 $mime = match ($extension) {
     'png' => 'image/png',
     'gif' => 'image/gif',
+    'mp4' => 'video/mp4',
     default => 'image/jpeg',
 };
 $imageUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($image) . '&inline=1');
@@ -154,6 +179,21 @@ if ($eventTitleLines === []) {
             justify-content: center;
         }
 
+        .viewer__media--latest {
+            display: flex;
+            align-content: center;
+            justify-content: space-around;
+        }
+
+
+        .viewer__qrcode {
+            text-align: center
+        }
+
+        .viewer__qrcode img {
+            max-width: 70%;
+        }
+
         .viewer__download {
             display: inline-flex;
             align-items: center;
@@ -190,20 +230,45 @@ if ($eventTitleLines === []) {
             </header>
             <div class="viewer__accent"></div>
 
+            <?php if ($isLatest): ?>
+            <div class="viewer__media viewer__media--latest" aria-label="Captured media preview">
+                <img id="viewer-image" src="<?= htmlspecialchars($latestImageUrl) ?>" alt="Captured photo">
+                <video src="<?= htmlspecialchars($latestVideoUrl) ?>" controls playsinline controlsList="nodownload">
+                    <?= htmlspecialchars($languageService->translate('viewer_video_fallback')) ?>
+                </video>
+            <?php else: ?>
             <div class="viewer__media" aria-label="Captured media preview">
-                <?php if ($isVideo): ?>
+                    <?php if ($isVideo): ?>
                     <video src="<?= htmlspecialchars($imageUrl) ?>" controls playsinline controlsList="nodownload">
                         <?= htmlspecialchars($languageService->translate('viewer_video_fallback')) ?>
                     </video>
-                <?php else: ?>
+                    <?php else: ?>
                     <img id="viewer-image" src="<?= htmlspecialchars($imageUrl) ?>" alt="Captured photo">
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
 
-            <div class="viewer__actions">
+                <?php if ($isLatest): ?>
+                <div class="viewer__actions">
+                    <div class="viewer__qrcode">
+                        <img src="<?= htmlspecialchars($latestImageQrCode) ?>" />
+                        <p><?= htmlspecialchars($latestImageQrCodeLabel) ?></p>
+                    </div>
+                    <div class="viewer__qrcode">
+                        <img src="<?= htmlspecialchars($latestVideoQrCode) ?>" />
+                        <p><?= htmlspecialchars($latestVideoQrCodeLabel) ?></p>
+                    </div>
+                </div>
+                <div class="viewer__actions">
+                    <a class="viewer__download" href="javascript:window.location.reload(true)" download="download">
+                        Reload
+                    </a>
+                </div>
+                <?php else: ?>
                 <a class="viewer__download" href="<?= htmlspecialchars($downloadUrl) ?>" download="download">
                     <?= htmlspecialchars($downloadLabel) ?>
                 </a>
+                <?php endif; ?>
             </div>
         </div>
     </main>

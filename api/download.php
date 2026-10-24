@@ -16,7 +16,10 @@ if ($image) {
         exit();
     }
 
-    $path = FolderEnum::IMAGES->absolute() . DIRECTORY_SEPARATOR . $basename;
+    $extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+    $isVideo = in_array($extension, ['mp4', 'mov', 'webm'], true);
+
+    $path = ($isVideo ? FolderEnum::VIDEOS->absolute() : FolderEnum::IMAGES->absolute()) . DIRECTORY_SEPARATOR . $basename;
 
     if (!is_file($path)) {
         http_response_code(404);

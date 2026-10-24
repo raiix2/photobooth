@@ -10,7 +10,7 @@ $standaloneReturnUrl = $standaloneReturnUrl ?? null;
 ?>
 <div id="gallery" class="gallery rotarygroup">
     <div class="gallery-header">
-        <div class="gallery-title"><h1><?= $languageService->translate('gallery') ?></h1></div>
+        <div class="gallery-title"><h1><?= !empty($config['gallery']['title']) ? $config['gallery']['title'] : $languageService->translate('gallery') ?></h1></div>
         <div class="gallery-actions">
             <?php if ($standaloneReturnUrl !== null): ?>
                 <?= ComponentUtility::renderButtonLink('back', 'fa fa-chevron-left', $standaloneReturnUrl) ?>

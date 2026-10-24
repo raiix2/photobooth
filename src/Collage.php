@@ -800,4 +800,17 @@ class Collage
         }
         return [$collageSrcImagePaths, $srcImages];
     }
+
+    public static function getCollageVideoFiles(array $collage, string $filename_tmp, string $file): array
+    {
+        $collageBasename = substr($filename_tmp, 0, -4);
+        $singleVideoBase = substr($file, 0, -4);
+
+        $collageSrcVideoPaths = [];
+
+        for ($i = 0; $i < $collage['limit']; $i++) {
+            $collageSrcVideoPaths[] = $collageBasename . '-' . $i . '.mp4';
+        }
+        return [$collageSrcVideoPaths, $singleVideoBase . '.mp4'];
+    }
 }

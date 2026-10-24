@@ -45,6 +45,7 @@ final class GalleryConfiguration
                     ->end()
                 ->booleanNode('show_date')->defaultValue(true)->end()
                 ->scalarNode('date_format')->defaultValue('d.m.Y - G:i')->end()
+                ->scalarNode('title')->defaultValue('')->end()
                 ->booleanNode('db_check_enabled')->defaultValue(true)->end()
                 ->integerNode('db_check_time')
                     ->defaultValue(10)
