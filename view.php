@@ -21,10 +21,10 @@ if($imageParam === 'latest' && $config['collage']['video_enabled']) {
    $imageParam = $images[0];
    $filename = strtolower(pathinfo($imageParam, PATHINFO_FILENAME));
    $latestImageUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.jpg&inline=1');
-   $latestVideoUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.mp4&inline=1');
+   $latestVideoUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.gif&inline=1');
    $latestImageQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.jpg');
    $latestImageQrCodeLabel = trim((string) ($config['qr']['short_text'] ?? ''));
-   $latestVideoQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.mp4');
+   $latestVideoQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.gif');
    $latestVideoQrCodeLabel = trim((string) ($config['qr']['video_short_text'] ?? ''));
 }
 else $isLatest = false;
@@ -233,9 +233,7 @@ if ($eventTitleLines === []) {
             <?php if ($isLatest): ?>
             <div class="viewer__media viewer__media--latest" aria-label="Captured media preview">
                 <img id="viewer-image" src="<?= htmlspecialchars($latestImageUrl) ?>" alt="Captured photo">
-                <video src="<?= htmlspecialchars($latestVideoUrl) ?>" controls playsinline controlsList="nodownload">
-                    <?= htmlspecialchars($languageService->translate('viewer_video_fallback')) ?>
-                </video>
+                <img src="<?= htmlspecialchars($latestVideoUrl) ?>" alt="Captured video" />
             <?php else: ?>
             <div class="viewer__media" aria-label="Captured media preview">
                     <?php if ($isVideo): ?>

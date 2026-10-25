@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ $1 =~ -h|--help ]]; then
+  cat <<HELP
+This script overlays all given videos into a collage as specified in the options
+
+Usage:
+
+    make-vid-collage <...video files> <output file>
+
+HELP
+  exit 0
+fi
+
+  ffmpeg \
+  -i "$1" -i "$2" -i "$3" -i /var/www/html/resources/img/background/10287791_vertical.png \
+  -filter_complex "
+    [3:v] scale=750:2250 [base];
+    [0:v] setpts=PTS-STARTPTS, scale=694:462:flags=lanczos [vid1];
+    [1:v] setpts=PTS-STARTPTS, scale=694:462:flags=lanczos [vid2];
+    [2:v] setpts=PTS-STARTPTS, scale=694:462:flags=lanczos [vid3];
+    [base][vid1] overlay=shortest=0:x=28:y=112 [tmp1];
+    [tmp1][vid2] overlay=shortest=0:x=28:y=602 [tmp2];
+    [tmp2][vid3] overlay=shortest=0:x=28:y=1092, split [a][b];
+    [b] palettegen=max_colors=256:stats_mode=full [p];
+    [a][p] paletteuse=dither=sierra2_4a
+  " \
+  -loop 0 \
+  -an \
+  "$4"

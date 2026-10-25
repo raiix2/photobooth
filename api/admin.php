@@ -57,6 +57,7 @@ if ($action === 'reset') {
         $logger->info('Remove media.');
         $imageFolders = [
             FolderEnum::IMAGES->absolute(),
+            FolderEnum::VIDEOS->absolute(),
             FolderEnum::KEYING->absolute(),
             FolderEnum::PRINT->absolute(),
             FolderEnum::QR->absolute(),

@@ -809,8 +809,8 @@ class Collage
         $collageSrcVideoPaths = [];
 
         for ($i = 0; $i < $collage['limit']; $i++) {
-            $collageSrcVideoPaths[] = $collageBasename . '-' . $i . '.mp4';
+            $collageSrcVideoPaths[] = $collageBasename . '-' . $i . '.gif';
         }
-        return [$collageSrcVideoPaths, $singleVideoBase . '.mp4'];
+        return [$collageSrcVideoPaths, $singleVideoBase . '.gif'];
     }
 }
