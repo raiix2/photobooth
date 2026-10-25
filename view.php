@@ -1,85 +1,3 @@
-<?php
-
-use Photobooth\Enum\FolderEnum;
-use Photobooth\Service\ApplicationService;
-use Photobooth\Service\LanguageService;
-use Photobooth\Utility\PathUtility;
-use Photobooth\Service\DatabaseManagerService;
-
-require_once __DIR__ . '/lib/boot.php';
-
-$imageParam = $_GET['image'] ?? '';
-if($imageParam === 'latest' && $config['collage']['video_enabled']) {
-    $isLatest = true;
-    $database = DatabaseManagerService::getInstance();
-    if ($config['database']['enabled']) {
-        $images = $database->getContentFromDB();
-    } else {
-        $images = $database->getFilesFromDirectory();
-    }
-    $images = array_reverse($images);
-   $imageParam = $images[0];
-   $filename = strtolower(pathinfo($imageParam, PATHINFO_FILENAME));
-   $latestImageUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.jpg&inline=1');
-   $latestVideoUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($filename) . '.gif&inline=1');
-   $latestImageQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.jpg');
-   $latestImageQrCodeLabel = trim((string) ($config['qr']['short_text'] ?? ''));
-   $latestVideoQrCode = PathUtility::getPublicPath('api/qrcode.php?filename=' . rawurlencode($filename) . '.gif');
-   $latestVideoQrCodeLabel = trim((string) ($config['qr']['video_short_text'] ?? ''));
-}
-else $isLatest = false;
-$image = basename((string) $imageParam);
-
-
-if ($image === '') {
-    http_response_code(400);
-    echo 'No image or video specified.';
-    exit();
-}
-
-
-$extension = strtolower(pathinfo($image, PATHINFO_EXTENSION));
-$isVideo = in_array($extension, ['mp4', 'mov', 'webm'], true);
-
-$imagePath = ($isVideo ? FolderEnum::VIDEOS->absolute() : FolderEnum::IMAGES->absolute()) . DIRECTORY_SEPARATOR . $image;
-  
-if (!is_file($imagePath)) {
-    http_response_code(404);
-    echo 'Image not found.';
-    exit();
-}
-
-$mime = match ($extension) {
-    'png' => 'image/png',
-    'gif' => 'image/gif',
-    'mp4' => 'video/mp4',
-    default => 'image/jpeg',
-};
-$imageUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($image) . '&inline=1');
-$downloadUrl = PathUtility::getPublicPath('api/download.php?image=' . rawurlencode($image));
-$languageService = LanguageService::getInstance();
-$appTitle = ApplicationService::getInstance()->getTitle();
-$startScreenTitle = trim((string) ($config['start_screen']['title'] ?? ''));
-$viewerFallbackTitle = $startScreenTitle !== '' ? $startScreenTitle : $appTitle;
-$pageTitle = $appTitle . ' - ' . $languageService->translate('viewer_photo_title');
-$downloadLabel = $languageService->translate('download');
-$eventTitleLines = $config['event']['enabled']
-    ? array_values(array_filter([
-        $config['event']['textLeft'] ?? '',
-        $config['event']['textRight'] ?? '',
-    ], static fn ($line) => $line !== ''))
-    : [$viewerFallbackTitle];
-
-if ($eventTitleLines === []) {
-    $eventTitleLines = [$viewerFallbackTitle];
-}
-
-// Public event hosts may expose this viewer and api/download.php, but still 404
-// the usual Photobooth assets under /resources, /node_modules, /private and
-// api/settings.php. Keep this page self-contained unless those asset paths are
-// available again. As a consequence, shared JS/CSS, Font Awesome icons and the
-// actual configured custom font files are not used here.
-?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($config['ui']['language'] ?? 'en') ?>">
 <head>
@@ -233,7 +151,9 @@ if ($eventTitleLines === []) {
             <?php if ($isLatest): ?>
             <div class="viewer__media viewer__media--latest" aria-label="Captured media preview">
                 <img id="viewer-image" src="<?= htmlspecialchars($latestImageUrl) ?>" alt="Captured photo">
-                <img src="<?= htmlspecialchars($latestVideoUrl) ?>" alt="Captured video" />
+                <video src="<?= htmlspecialchars($latestVideoUrl) ?>" controls playsinline controlsList="nodownload">
+                    <?= htmlspecialchars($languageService->translate('viewer_video_fallback')) ?>
+                </video>
             <?php else: ?>
             <div class="viewer__media" aria-label="Captured media preview">
                     <?php if ($isVideo): ?>
