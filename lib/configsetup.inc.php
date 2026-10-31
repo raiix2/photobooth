@@ -3869,13 +3869,6 @@ return [
             'name' => 'commands[pre_collage]',
             'value' => htmlentities($config['commands']['pre_collage'] ?? ''),
         ],
-        'collage_video_cmd' => [
-            'view' => 'expert',
-            'type' => 'input',
-            'placeholder' => $defaultConfig['commands']['collage_video'],
-            'name' => 'commands[collage_video]',
-            'value' => htmlentities($config['commands']['collage_video'] ?? ''),
-        ],
         'take_video_cmd' => [
             'view' => 'experimental',
             'type' => 'input',

@@ -29,7 +29,6 @@ vendor/simple-translator/
 venv/
 yarn.lock
 var/
-vendor/
 
 # tooling
 tools/*/vendor
