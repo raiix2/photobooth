@@ -1081,11 +1081,13 @@ const photoBooth = (function () {
                 })
                 .done((data) => {
                     try {
-                        photoboothTools.console.log(api.photoStyle + ' processed', data);
+                        photoboothTools.console.log(api.photoStyle + ' video processed', data);
                         endTime = new Date().getTime();
                         totalTime = endTime - startTime;
-                        photoboothTools.console.logDev('Processing ' + api.photoStyle + ' took ' + totalTime + 'ms');
-                        photoboothTools.console.logDev('Images:', data.images);
+                        photoboothTools.console.logDev(
+                            'Processing video ' + api.photoStyle + ' took ' + totalTime + 'ms'
+                        );
+                        photoboothTools.console.logDev('Videos:', data.images);
 
                         if (data.error) {
                             api.errorPic(data);

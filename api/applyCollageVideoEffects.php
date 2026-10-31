@@ -12,6 +12,7 @@ use Photobooth\Service\LoggerService;
 use Photobooth\Service\RemoteStorageService;
 use Photobooth\Utility\ImageUtility;
 use Photobooth\Utility\PathUtility;
+use Symfony\Component\Filesystem\Filesystem;
 
 header('Content-Type: application/json');
 
@@ -44,6 +45,8 @@ try {
     }
 
     $limitData = Collage::calculateLimit($config['collage'], $logger);
+    $logger->debug('calculateLimit');
+
     $config['collage']['limit'] = $limitData['limit'];
     $config['collage']['placeholder'] = $limitData['placeholderEnabled'];
 
@@ -64,30 +67,39 @@ $vars['srcVideos'][] = $vars['fileName'];
 
 try {
     $vars['tmpFile'] = FolderEnum::TEMP->absolute() . DIRECTORY_SEPARATOR . $vars['fileName'];
-    [$vars['collageSrcVideoPaths'], $vars['singleVideoFile']] = Collage::getCollageVideoFiles($config['collage'], $vars['tmpFile'], $vars['fileName']);
 
-    $vars['resultFile'] = FolderEnum::VIDEOS->absolute() . DIRECTORY_SEPARATOR . $vars['singleVideoFile'];
-    $vars['collageSrcVideoPaths'][] = $vars['resultFile'];
+    $vars['collageSrcVideoPaths'] = Collage::getCollageVideoFiles($config['collage'], $vars['tmpFile']);
+
+    $vars['resultFile'] = FolderEnum::VIDEOS->absolute() . DIRECTORY_SEPARATOR . substr($vars['fileName'], 0, -4) . ".mp4";
+    [$cmd, $tmpFiles] = Collage::createCollageVideo($config, $vars['collageSrcVideoPaths'], $vars['resultFile']);
+    if (is_null($cmd)) {
+        throw new \Exception('Error creating collage video.');
+    }
 
     try {
-        $cmd = vsprintf($config['commands']['collage_video'], $vars['collageSrcVideoPaths']);
         $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
 
         exec($cmd, $output, $returnValue);
 
+        $logger->debug('exec: ' . $cmd);
         if ($returnValue) {
             $errorData = [
-                'error' => 'creating collage video returned with an error code',
+                'error' => 'createCollageVideo returned with an error code',
                 'cmd' => $cmd,
                 'returnValue' => $returnValue,
                 'output' => $output,
             ];
-            $logger->error('creating collage video returned with an error code', $errorData);
+            $logger->error('createCollageVideo returned with an error code', $errorData);
         }
     } catch (\Exception $e) {
         $logger->error($e->getMessage());
     }
-
+    finally {
+        $filesystem = (new Filesystem());
+        foreach ($tmpFiles as $tmpFile) {
+            $filesystem->remove($tmpFile);
+        }
+    }
 } catch (\Exception $e) {
     // Handle the exception
     $logger->error($e->getMessage());
@@ -99,6 +111,6 @@ $data = [
     'file' => $vars['fileName'],
     'images' => $vars['srcVideos'],
 ];
-$logger->debug('effects applied', $data);
+$logger->debug('Video collage effects applied', $data);
 echo json_encode($data);
 exit();
