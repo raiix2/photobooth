@@ -67,6 +67,24 @@ try {
             $captureHandler->collageNumber = intval($number);
             $captureHandler->collageLimit = $config['collage']['limit'];
             break;
+        case 'collagevideo':
+            if (!is_numeric($_POST['collageNumber'])) {
+                throw new \Exception('No or invalid collage number provided.');
+            }
+
+            $number = $_POST['collageNumber'] + 0;
+
+            if ($number > $config['collage']['limit']) {
+                throw new \Exception('Collage consists only of ' . $config['collage']['limit'] . ' videos');
+            }
+
+            $captureHandler->collageSubFile = substr($file, 0, -4) . '-' . $number . '.mp4';
+            $captureHandler->tmpFile = substr($filename_tmp, 0, -4) . '-' . $number . '.mp4';
+            $captureHandler->style = 'collagevideo';
+            $captureHandler->previewUrl = $config['preview']['url'];
+            $captureHandler->collageNumber = intval($number);
+            $captureHandler->collageLimit = $config['collage']['limit'];
+            break;
         case 'chroma':
             $captureHandler->style = 'chroma';
             break;
@@ -96,6 +114,8 @@ try {
             $captureHandler->captureCmd = $config['commands']['take_custom'];
         } elseif ($_POST['style'] === 'collage' && !empty($config['commands']['take_collage'])) {
             $captureHandler->captureCmd = $config['commands']['take_collage'];
+        }  elseif ($_POST['style'] === 'collagevideo') {
+            $captureHandler->captureCmd = $config['commands']['pre_collage'];
         } else {
             $captureHandler->captureCmd = $config['commands']['take_picture'];
         }

@@ -191,6 +191,7 @@ class ConfigurationService
             'nodebin',
             'pre_photo',
             'post_photo',
+            'pre_collage',
             'reboot',
             'shutdown',
         ];

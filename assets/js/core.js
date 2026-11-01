@@ -6,6 +6,7 @@ const photoBooth = (function () {
     const PhotoStyle = {
             PHOTO: 'photo',
             COLLAGE: 'collage',
+            COLLAGEVIDEO: 'collagevideo',
             CHROMA: 'chroma',
             VIDEO: 'video',
             CUSTOM: 'custom'
@@ -600,6 +601,16 @@ const photoBooth = (function () {
                 photoboothTools.getRequest(getUrl);
             }
 
+            if (api.photoStyle === PhotoStyle.COLLAGE && config.collage.video_enabled) {
+                if (!currentCollageFile) {
+                    currentCollageFile =
+                        new Date()
+                            .toLocaleString('sv-SE', { timeZone: 'Europe/Amsterdam' })
+                            .replace(/[-: ]/g, '')
+                            .replace(/^(\d{8})(\d{6})$/, '$1_$2') + '.jpg';
+                }
+                api.takeCollageVideo();
+            }
             await api.countdown.start(countdownTime);
             await api.cheese.start();
 
@@ -624,6 +635,16 @@ const photoBooth = (function () {
             style: api.photoStyle
         };
         api.callTakeVideoApi(data, retry);
+    };
+
+    api.takeCollageVideo = function () {
+        const data = {
+            style: PhotoStyle.COLLAGEVIDEO,
+            file: currentCollageFile,
+            collageNumber: api.nextCollageNumber,
+            collageLimit: api.collageLimit
+        };
+        api.callTakeCollageVideoApi(data);
     };
 
     api.takePic = function (retry) {
@@ -656,7 +677,6 @@ const photoBooth = (function () {
             api.errorPic({ error: error.message || 'Unexpected error in takePic' });
         }
     };
-
     api.retryTakePic = function (retry) {
         api.takingPic = false;
         retry += 1;
@@ -873,6 +893,43 @@ const photoBooth = (function () {
             });
     };
 
+    api.callTakeCollageVideoApi = function (data) {
+        startTime = new Date().getTime();
+        photoboothTools
+            .ajaxWithCsrf({
+                url: environment.publicFolders.api + '/capture.php',
+                method: 'POST',
+                data: data,
+                timeout: 25000
+            })
+            .done(async (result) => {
+                try {
+                    endTime = new Date().getTime();
+                    totalTime = endTime - startTime;
+                    photoboothTools.console.log('Took ' + data.style, result);
+                    photoboothTools.console.logDev('Taking video took ' + totalTime + 'ms');
+                } catch (error) {
+                    photoboothTools.console.log('callTakeCollageVideoApi.done: unexpected error:', error);
+                }
+            })
+            .fail(function (xhr, status, result) {
+                try {
+                    if (photoboothTools.isCsrfErrorResponse(xhr)) {
+                        photoboothTools.handleCsrfMismatch(environment.publicFolders.api + '/capture.php');
+                        return;
+                    }
+                    if (result === null || result === undefined || typeof result === 'string') {
+                        result = { error: result || 'Unexpected error: result is null or undefined' };
+                    } else if (!result.error) {
+                        result.error = 'Unknown error occurred';
+                    }
+                    photoboothTools.console.log('callTakeCollageVideoApi: unexpected error:', result);
+                } catch (error) {
+                    photoboothTools.console.log('Unexpected error in .fail block', error);
+                }
+            });
+    };
+
     api.callTakeVideoApi = function (data) {
         if (config.video.animation) {
             videoAnimation.show();
@@ -1007,6 +1064,47 @@ const photoBooth = (function () {
                 loader.addClass('showBackgroundImage');
             };
             preloadImage.src = tempImageUrl;
+        }
+
+        // Create collage video if enabled
+        if (config.collage.video_enabled) {
+            photoboothTools
+                .ajaxWithCsrf({
+                    method: 'POST',
+                    url: environment.publicFolders.api + '/applyCollageVideoEffects.php',
+                    data: {
+                        file: result.file,
+                        style: api.photoStyle,
+                        collageLayout: api.collageLayout,
+                        collageLimit: api.collageLimit
+                    }
+                })
+                .done((data) => {
+                    try {
+                        photoboothTools.console.log(api.photoStyle + ' video processed', data);
+                        endTime = new Date().getTime();
+                        totalTime = endTime - startTime;
+                        photoboothTools.console.logDev(
+                            'Processing video ' + api.photoStyle + ' took ' + totalTime + 'ms'
+                        );
+                        photoboothTools.console.logDev('Videos:', data.images);
+
+                        if (data.error) {
+                            api.errorPic(data);
+                        }
+                    } catch (error) {
+                        photoboothTools.console.log('processCollageVideo.success: unexpected error:', error);
+                        api.errorPic({ error: error.message || 'Unexpected error processing collage video' });
+                    }
+                })
+                .fail((jqXHR) => {
+                    if (photoboothTools.isCsrfErrorResponse(jqXHR)) {
+                        photoboothTools.handleCsrfMismatch(
+                            environment.publicFolders.api + '/applyCollageVideoEffects.php'
+                        );
+                        return;
+                    }
+                });
         }
 
         photoboothTools

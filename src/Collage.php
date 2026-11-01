@@ -3,6 +3,7 @@
 namespace Photobooth;
 
 use Photobooth\Dto\CollageConfig;
+use Photobooth\Enum\FolderEnum;
 use Photobooth\Enum\ImageFilterEnum;
 use Photobooth\Factory\CollageConfigFactory;
 use Photobooth\Service\LoggerService;
@@ -800,4 +801,215 @@ class Collage
         }
         return [$collageSrcImagePaths, $srcImages];
     }
+
+    public static function createCollageVideo(array $config, array $srcPaths, string $destPath): array
+    {
+        $logger = $logger ?? LoggerService::getInstance()->getLogger('main');
+
+        if ($c === null) {
+            $c = CollageConfigFactory::fromConfig($config);
+        }
+        self::reset();
+        $imageHandler = new Image();
+        $imageHandler->jpegQuality = 100;
+        self::$pictureOrientation = $c->collageOrientation;
+
+        $collageConfigFilePath = self::getCollageConfigPath($c->collageLayout, self::$pictureOrientation);
+
+        if ($collageConfigFilePath !== null) {
+            $collageJson = json_decode((string)file_get_contents($collageConfigFilePath), true);
+            if (!is_array($collageJson) && self::isLayoutsPath($collageConfigFilePath)) {
+                $legacyPath = self::getLegacyCollageConfigPath($c->collageLayout, self::$pictureOrientation);
+                if ($legacyPath !== null && $legacyPath !== $collageConfigFilePath) {
+                    $collageJson = json_decode((string)file_get_contents($legacyPath), true);
+                }
+            }
+
+            if (is_array($collageJson)) {
+                if (isset($collageJson['layout']) && !empty($collageJson['layout'])) {
+                    $layoutConfigArray = $collageJson['layout'];
+
+                    if (isset($collageJson['background_color']) && !empty($collageJson['background_color'])) {
+                        $c->collageBackgroundColor = $collageJson['background_color'];
+                    }
+
+                    if (isset($collageJson['background']) && !empty($collageJson['background'])) {
+                        $c->collageBackground = $collageJson['background'];
+                    }
+
+                    if (isset($collageJson['width']) && isset($collageJson['height'])) {
+                        self::$collageWidth = $collageJson['width'];
+                        self::$collageHeight = $collageJson['height'];
+                    }
+                } else {
+                    $layoutConfigArray = $collageJson;
+                }
+            } else {
+                return null;
+            }
+        }
+
+        $bg_r = 255;
+        $bg_g = 255;
+        $bg_b = 255;
+        $bg_color_hex = 0xFFFFFF;
+
+        if ($c->collageBackgroundColor !== null) {
+            // colors for background and while rotating jpeg images
+            $colorComponents = $imageHandler->getColorComponents($c->collageBackgroundColor);
+            list($bg_r, $bg_g, $bg_b) = $colorComponents;
+            $bg_color_hex = hexdec(substr($c->collageBackgroundColor, 1));
+            if (!is_int($bg_color_hex)) {
+                throw new \Exception('Cannot convert the hexadecimal collage background color to its decimal equivalent!');
+            }
+        }
+
+        if (!is_array($srcPaths)) {
+            throw new \Exception('Source paths are not an array.');
+        }
+
+        // validate that there is the correct amount of videos
+        if (($c->collagePlaceholder && count($srcPaths) !== $c->collageLimit - 1) || (!$c->collagePlaceholder && count($srcPaths) !== $c->collageLimit)) {
+            throw new \Exception('Invalid number of videos.');
+        }
+
+        // If no dimensions given ftom json create Collage based on 300dpi 4x6in
+        // Scale collages with the height
+        if (self::$collageHeight === 0) {
+            self::$collageHeight = 1200;
+        }
+
+        if (self::$collageWidth === 0) {
+            self::$collageWidth = 1800;
+        }
+
+        // Start command with background and size
+        $inputs = [];
+        $inputOffset = false;
+
+        $inputArgs = [];
+        $overlayArgs = [];
+
+        $tmpPath = FolderEnum::TEMP->absolute() . DIRECTORY_SEPARATOR;
+        $tmpFiles = [];
+
+        $c->collageBackground = Helper::getPrefixedFile($c->collageBackground, $c->collageLayout);
+        if (!empty($c->collageBackground)) {
+            $backgroundImage = $imageHandler->createFromImage($c->collageBackground);
+            if (!$backgroundImage instanceof \GdImage) {
+                throw new \Exception('Failed to create collage background image resource.');
+            }
+            $backgroundImage = $imageHandler->resizeImage($backgroundImage, self::$collageWidth, self::$collageHeight);
+            if (!$backgroundImage instanceof \GdImage) {
+                throw new \Exception('Failed to resize collage background image resource.');
+            }
+            $backgroundPath = $tmpPath . Image::createNewFilename('random');
+            $tmpFiles[] = $backgroundPath;
+            $imageHandler->saveJpeg($backgroundImage, $backgroundPath);
+            $inputs[] = "-i $backgroundPath";
+            $inputArgs[] = "[0:v] scale=" . self::$collageWidth . "x" . self::$collageHeight . " [vid0];";
+            $inputOffset = true;
+        } else {
+            $inputArgs[] = "color=$bg_color_hex:s=" . self::$collageWidth . "x" . self::$collageHeight . " [vid0];";
+        }
+
+        //Use offset to reflect image file numbering
+        $placeholderOffset = 0;
+        for ($i = 0; $i < $c->collageLimit; $i++) {
+            $srcIndex = $i - $placeholderOffset;
+            if (!isset($srcPaths[$srcIndex]) || !file_exists($srcPaths[$srcIndex])) {
+                throw new \Exception('The file ' . ($srcPaths[$srcIndex] ?? 'undefined') . ' does not exist.');
+            }
+            $inputs[] = "-i " . $srcPaths[$srcIndex];
+            $tmpFiles[] = $srcPaths[$srcIndex];
+        }
+
+        $pictureOptions = [];
+        if (isset($layoutConfigArray)) {
+            foreach ($layoutConfigArray as $layoutConfig) {
+                if (!is_array($layoutConfig) || count($layoutConfig) < 5 || count($layoutConfig) > 6) {
+                    return null;
+                }
+
+                $singlePictureOptions = [];
+                for ($j = 0; $j < count($layoutConfig); $j++) {
+                    $processed = $layoutConfig[$j];
+                    if ($j !== 5) {
+                        $value = str_replace(['x', 'y'], [self::$collageWidth, self::$collageHeight], $layoutConfig[$j]);
+                        $processed = Helper::doMath($value);
+                    }
+                    $singlePictureOptions[] = $processed;
+                }
+                $pictureOptions[] = $singlePictureOptions;
+            }
+        }
+
+        if (empty($pictureOptions)) {
+            throw new \Exception('Failed to get picture options.');
+        }
+
+        $lastOutput = "vid0"; // Set background as first overlay
+        $lastOptionIndex = count($pictureOptions) - 1;
+        foreach ($pictureOptions as $i => $singlePictureOptions) {
+            if($i === $lastOptionIndex) {
+                $lastOutput = "END";
+            }
+            [$inputArgs[], $overlayArgs[]] = self::getVideoOptionArgs(
+                (int)$singlePictureOptions[0],
+                (int)$singlePictureOptions[1],
+                (int)$singlePictureOptions[2],
+                (int)$singlePictureOptions[3],
+                $i + 1,
+                $inputOffset,
+                $lastOutput
+            );
+            $lastOutput = "";
+        }
+
+        $collageCommand = "ffmpeg " . implode(" ", $inputs) . " -filter_complex \"" . implode(" ", $inputArgs) . " " . implode(" ", $overlayArgs) . "\" -c:v libx264 -an -pix_fmt yuv420p " . $destPath;
+
+        return [$collageCommand, $tmpFiles];
+    }
+
+    public static function getCollageVideoFiles(array $collage, string $filename_tmp): array
+    {
+        $collageBasename = substr($filename_tmp, 0, -4);
+
+        $collageSrcVideoPaths = [];
+
+        for ($i = 0; $i < $collage['limit']; $i++) {
+            $collageSrcVideoPaths[] = $collageBasename . '-' . $i . '.mp4';
+        }
+        return $collageSrcVideoPaths;
+    }
+
+
+    /**
+     * Set the picture options for adding a picture to image resource.
+     */
+    public static function getVideoOptionArgs(int $x, int $y, int $width, int $height, int $index, bool $inputOffset, string $lastOutput): array
+    {
+        try {
+        $logger = $logger ?? LoggerService::getInstance()->getLogger('main');
+        // if no bg image is given as an input, take arg 0
+        $inputArg = "[" . $index - ($inputOffset ? 0 : 1) . ":v] setpts=PTS-STARTPTS, scale=" . $width . "x" . $height . " [vid" . $index . "];";
+        $isLast = $lastOutput === "END";
+        if($isLast) {
+            $lastOutput = null;
+        }
+        $lastOutput = strlen($lastOutput) == 0 ? "tmp" . $index - 1 : $lastOutput;
+        $overlayArg = "[" . $lastOutput ."]";
+        $overlayArg .= "[vid" . $index ."] overlay=shortest=0:x=" . $x . ":y=" . $y;
+        if(!$isLast) {
+            $overlayArg .= " [tmp" . $index . "];";
+        }
+
+        return [$inputArg, $overlayArg];
+        } catch (\Exception $e) {
+            // Handle the exception
+            $logger->error($e->getMessage());
+            return ["", ""];
+        }
+    }
+
 }

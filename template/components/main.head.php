@@ -32,6 +32,7 @@ include PathUtility::getAbsolutePath('template/components/main.defaults.php');
     <link rel="mask-icon" href="<?=$assetService->getUrl('resources/img/safari-pinned-tab.svg')?>" color="#5bbad5">
 
     <!-- Fullscreen Mode on old iOS-Devices when starting photobooth from homescreen -->
+    <meta name="viewport" content="initial-scale=1, viewport-fit=cover, width=device-width"></meta>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 

@@ -32,6 +32,7 @@ final class CollageConfiguration
                 ->end()
             ->children()
                 ->booleanNode('enabled')->defaultValue(true)->end()
+                ->booleanNode('video_enabled')->defaultValue(true)->end()
                 ->integerNode('cntdwn_time')
                     ->defaultValue(3)
                     ->min(0)

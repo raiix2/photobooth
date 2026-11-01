@@ -1000,6 +1000,12 @@ return [
             'name' => 'collage[enabled]',
             'value' => $config['collage']['enabled'],
         ],
+        'collage_video_enabled' => [
+            'view' => 'expert',
+            'type' => 'checkbox',
+            'name' => 'collage[video_enabled]',
+            'value' => $config['collage']['video_enabled'],
+        ],
         'collage_cntdwn_time' => [
             'view' => 'basic',
             'type' => 'range',
@@ -1614,6 +1620,13 @@ return [
             'type' => 'checkbox',
             'name' => 'gallery[figcaption]',
             'value' => $config['gallery']['figcaption'],
+        ],
+        'gallery_title' => [
+            'view' => 'expert',
+            'type' => 'input',
+            'placeholder' => '',
+            'name' => 'gallery[title]',
+            'value' => $config['gallery']['title'],
         ],
         'pswp_caption' => [
             'view' => 'basic',
@@ -2307,6 +2320,13 @@ return [
             'placeholder' => $defaultConfig['qr']['short_text'],
             'name' => 'qr[short_text]',
             'value' => htmlentities($config['qr']['short_text'] ?? ''),
+        ],
+        'qr_video_short_text' => [
+            'view' => 'advanced',
+            'type' => 'input',
+            'placeholder' => $defaultConfig['qr']['video_short_text'],
+            'name' => 'qr[video_short_text]',
+            'value' => htmlentities($config['qr']['video_short_text'] ?? ''),
         ],
         'qr_custom_text' => [
             'view' => 'advanced',
@@ -3841,6 +3861,13 @@ return [
             'type' => 'checkbox',
             'name' => 'preview[bsm]',
             'value' => $config['preview']['bsm'],
+        ],
+        'pre_collage_cmd' => [
+            'view' => 'expert',
+            'type' => 'input',
+            'placeholder' => $defaultConfig['commands']['pre_collage'],
+            'name' => 'commands[pre_collage]',
+            'value' => htmlentities($config['commands']['pre_collage'] ?? ''),
         ],
         'take_video_cmd' => [
             'view' => 'experimental',

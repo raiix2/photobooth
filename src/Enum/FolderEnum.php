@@ -12,6 +12,7 @@ enum FolderEnum: string
     case CHROMA = 'chroma';
     case DATA = 'data';
     case IMAGES = 'data/images';
+    case VIDEOS = 'data/videos';
     case KEYING = 'data/keying';
     case PRINT = 'data/print';
     case QR = 'data/qrcodes';
@@ -40,6 +41,7 @@ enum FolderEnum: string
             FolderEnum::CHROMA => 'chroma',
             FolderEnum::DATA => 'data',
             FolderEnum::IMAGES => 'images',
+            FolderEnum::VIDEOS => 'videos',
             FolderEnum::KEYING => 'keying',
             FolderEnum::PRINT => 'print',
             FolderEnum::QR => 'qrcodes',
