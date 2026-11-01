@@ -81,6 +81,7 @@ try {
             $captureHandler->collageSubFile = substr($file, 0, -4) . '-' . $number . '.mp4';
             $captureHandler->tmpFile = substr($filename_tmp, 0, -4) . '-' . $number . '.mp4';
             $captureHandler->style = 'collagevideo';
+            $captureHandler->previewUrl = $config['preview']['url'];
             $captureHandler->collageNumber = intval($number);
             $captureHandler->collageLimit = $config['collage']['limit'];
             break;

@@ -19,6 +19,7 @@ class PhotoboothCapture
     public int $collageLimit;
     public string $flipImage = 'off';
     public string $captureCmd;
+    public string $previewUrl;
     public NamedLogger $logger;
     public int $debugLevel = 1;
 
@@ -118,12 +119,21 @@ class PhotoboothCapture
             'cmd' => $this->captureCmd,
             'tmpFile' => $this->tmpFile,
         ]);
+        
         //gphoto must be executed in a dir with write permission for other commands we stay in the api dir
         if (substr($this->captureCmd, 0, strlen('gphoto')) === 'gphoto') {
             chdir(dirname($this->tmpFile));
         }
-        $cmd = sprintf($this->captureCmd, $this->tmpFile);
-        $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
+
+
+        if($this->style === 'collagevideo') {
+            $cmd = sprintf($this->captureCmd,  $this->previewUrl, $this->tmpFile);
+            $cmd .= ' > /dev/null 2>&1 &';
+        }
+        else {
+            $cmd = sprintf($this->captureCmd, $this->tmpFile);
+            $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
+        }
 
         exec($cmd, $output, $returnValue);
 

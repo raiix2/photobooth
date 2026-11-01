@@ -2,14 +2,14 @@
 
 if [[ $1 =~ -h|--help ]]; then
   cat <<HELP
-This script records a mjpeg stream for a period of time and saves to an mp4 file
+This script records a mjpeg stream and saves to an mp4 file
 
 Usage:
 
-    capture-video <duration> <filename>
+    capture-video <streamurl> <filename>
 
 HELP
   exit 0
 fi
 
-ffmpeg -y -f mjpeg -use_wallclock_as_timestamps 1 -i http://localhost:1984/api/stream.mjpeg?src=photobooth -t $1 -vf setpts=PTS-STARTPTS -vsync 0 -c:v libx264 -an $2
+ffmpeg -y -f mjpeg -use_wallclock_as_timestamps 1 -i $1 -vf setpts=PTS-STARTPTS -vsync 0 -c:v libx264 -an $2

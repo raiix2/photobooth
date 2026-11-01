@@ -45,7 +45,6 @@ try {
     }
 
     $limitData = Collage::calculateLimit($config['collage'], $logger);
-    $logger->debug('calculateLimit');
 
     $config['collage']['limit'] = $limitData['limit'];
     $config['collage']['placeholder'] = $limitData['placeholderEnabled'];
@@ -81,7 +80,6 @@ try {
 
         exec($cmd, $output, $returnValue);
 
-        $logger->debug('exec: ' . $cmd);
         if ($returnValue) {
             $errorData = [
                 'error' => 'createCollageVideo returned with an error code',
