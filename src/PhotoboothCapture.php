@@ -119,21 +119,14 @@ class PhotoboothCapture
             'cmd' => $this->captureCmd,
             'tmpFile' => $this->tmpFile,
         ]);
-        
+
         //gphoto must be executed in a dir with write permission for other commands we stay in the api dir
         if (substr($this->captureCmd, 0, strlen('gphoto')) === 'gphoto') {
             chdir(dirname($this->tmpFile));
         }
-
-
-        if($this->style === 'collagevideo') {
-            $cmd = sprintf($this->captureCmd,  $this->previewUrl, $this->tmpFile);
-            $cmd .= ' > /dev/null 2>&1 &';
-        }
-        else {
-            $cmd = sprintf($this->captureCmd, $this->tmpFile);
-            $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
-        }
+        
+        $cmd = sprintf($this->captureCmd, $this->tmpFile);
+        $cmd .= ' 2>&1'; //Redirect stderr to stdout, otherwise error messages get lost.
 
         exec($cmd, $output, $returnValue);
 
@@ -177,6 +170,35 @@ class PhotoboothCapture
             }
             $this->logger->error('error', $data);
             echo json_encode($data);
+            die();
+        }
+    }
+
+
+
+    /**
+     * Capture preview stream as video
+     */
+    public function capturePreviewStream(): void
+    {
+        $this->logger->debug('Capture preview stream', [
+            'tmpFile' => $this->tmpFile,
+        ]);
+
+        // Redirect stderr and run in background
+        $cmd = "ffmpeg -y -f mjpeg -use_wallclock_as_timestamps 1 -i %s -vf setpts=PTS-STARTPTS -vsync 0 -c:v libx264 -an %s > /dev/null 2>&1 &";
+        $cmd = sprintf($cmd,  $this->previewUrl, $this->tmpFile);
+        
+        exec($cmd, $output, $returnValue);
+
+        if ($returnValue && $this->debugLevel > 1) {
+            $data = [
+                'error' => 'Capture command returned an error code.',
+                'cmd' => $cmd,
+                'returnValue' => $returnValue,
+                'output' => $output,
+            ];
+            $this->logger->error('error', $data);
             die();
         }
     }
