@@ -289,6 +289,10 @@ An updated FAQ can always be found at <a href="http://localhost/faq">localhost/f
 <hr>
 
 <h2 id="4x-development">4.x development</h2>
+<p><strong>Requirements</strong></p>
+<ul>
+<li>Minimum PHP version is now 8.4.1 (@dependabot, @reloxx13).</li>
+</ul>
 <p><strong>Features</strong></p>
 <ul>
 <li>Virtual keyboard for email (layouts/colors, toggle), multi-recipient email, and configurable email fields.</li>
@@ -298,19 +302,39 @@ An updated FAQ can always be found at <a href="http://localhost/faq">localhost/f
 <li>Printing: copy prompt, new print-limit endpoint, longer print timeout, multi-print fixes, queued message timing, hardware button photo support, hardware keyboard for admin PIN, Remotebuzzer on chroma capture.</li>
 <li>Rembg as built-in service with advanced options, logging, compositing fixes, and install script.</li>
 <li>Theme management with categories/docs, custom CSS, git version indicator, clear-cache button, custom <code>stage.start.php</code>, optional result blur, gallery dimension caching, preview URL migration.</li>
-<li>Setup: whiptail-based Setup Wizard, PHP 8.4 requirement, install_rembg improvements, USB sync hardening, installer self-update tweaks.</li>
+<li>Setup: whiptail-based Setup Wizard, PHP 8.4.1 requirement, install_rembg improvements, USB sync hardening, installer self-update tweaks.</li>
 <li>QR-Code short text option on result screen and gallery for better understanding, configurable in admin settings.</li>
 <li>Introduced a new Screensaver feature with image/video/folder/gallery modes, configurable start timeout and slide interval.</li>
 <li>Added a font configuration section for UI texts so fonts/colors can be set centrally ( fixes #986 )</li>
 <li>Configurable fixed size for gallery detail images and add toogle to use thumbs in gallery for better loading times</li>
+<li>Screensaver images and videos can be uploaded to <code>private/screensavers</code> through the admin upload page (@reloxx13).</li>
+<li>Added edge and alignment guides to the photo and collage test pages (@reloxx13).</li>
 </ul>
 <p><strong>Bug fixes</strong></p>
 <ul>
+<li>Screensaver folder mode: support folder names containing parentheses or apostrophes on initial display and image changes (@reloxx13).</li>
+<li>GPhoto2 webcam setup: install the required <code>ffmpeg</code> dependency (@reloxx13).</li>
+<li>Remote buzzer: return HTTP 503 for capture and print requests when no client is connected, leaving the trigger armed for retries (@reloxx13).</li>
+<li>Screensaver folder mode: add a configurable folder path in the admin panel, default to <code>private/screensavers</code>, preserve already-prefixed private paths and avoid double URL encoding so custom folders, including names with spaces, load correctly (@alifakbxr, @reloxx13).</li>
 <li>Selfie rename robustness; chroma preview visibility; loader clearing; hide video background during capture.</li>
 <li>Installer fixes: PHP PPA validation, permissions/source lists/Wayland flag, unavailable PPA removal, software-properties-common fallback.</li>
 <li>Printing: copy casting and deprecations, rotate error surfacing, stop-second timing, iOS preview fixes, admin tooltip/label fixes, default path corrections.</li>
 <li>Rembg typing/logging/error handling; collage/theme path fixes; preview caching; safer uploads/video background handling; collage defaults tightening.</li>
+<li>Rembg: send model, alpha-matting and post-processing options as multipart form fields so the service applies the configured settings; speed up lossless PNG preparation, clean up temporary files on success and failure, decode responses in memory and avoid decoding the background twice (@fmiccolis).</li>
 <li>Docs/link cleanups and various deprecation warnings addressed.</li>
+<li>Printing works again after unlocking a reached print limit; the next lock is set to the following limit boundary (@reloxx13).</li>
+<li>Reboot and shutdown work when login is disabled; admin/rental authorization is still required when login is enabled (@nbosb).</li>
+<li>Installer: clone from an accessible working directory when running Git as <code>www-data</code>, expose clone errors, and stop silent installation on failure (@reloxx13).</li>
+<li>Remote buzzer: retry connections when the server is unavailable and update connection state after disconnecting and reconnecting (@reloxx13).</li>
+<li>Public QR viewer: make the page self-contained and serve previews through the download endpoint so shared asset and image directories do not need to be publicly exposed (@reloxx13).</li>
+<li>Prevent sticky button hover states on iPad Safari while preserving keyboard focus highlighting (@reloxx13).</li>
+<li>Correct Linux IP detection when <code>hostname -I</code> returns multiple addresses or extra whitespace (@reloxx13).</li>
+<li>DDEV: keep the npm version bundled with Node.js 20 instead of installing an incompatible latest npm release (@reloxx13).</li>
+<li>Setup Wizard: correct the PHP upload-limit menu label from 20 MB to 64 MB (@andi34).</li>
+</ul>
+<p><strong>Maintenance</strong></p>
+<ul>
+<li>Updated PHP/frontend dependencies, development tools and GitHub Actions, including Symfony Config 8.1 and Tailwind CSS/PostCSS updates (@dependabot), with compatibility fixes (@reloxx13).</li>
 </ul>
 <hr>
 

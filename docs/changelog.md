@@ -11,6 +11,10 @@ Please read the license notice [here](https://github.com/PhotoboothProject/photo
 
 ## 4.x development
 
+**Requirements**
+
+- Minimum PHP version is now 8.4.1 (@dependabot, @reloxx13).
+
 **Features**
 
 - Virtual keyboard for email (layouts/colors, toggle), multi-recipient email, and configurable email fields.
@@ -20,19 +24,39 @@ Please read the license notice [here](https://github.com/PhotoboothProject/photo
 - Printing: copy prompt, new print-limit endpoint, longer print timeout, multi-print fixes, queued message timing, hardware button photo support, hardware keyboard for admin PIN, Remotebuzzer on chroma capture.
 - Rembg as built-in service with advanced options, logging, compositing fixes, and install script.
 - Theme management with categories/docs, custom CSS, git version indicator, clear-cache button, custom `stage.start.php`, optional result blur, gallery dimension caching, preview URL migration.
-- Setup: whiptail-based Setup Wizard, PHP 8.4 requirement, install_rembg improvements, USB sync hardening, installer self-update tweaks.
+- Setup: whiptail-based Setup Wizard, PHP 8.4.1 requirement, install_rembg improvements, USB sync hardening, installer self-update tweaks.
 - QR-Code short text option on result screen and gallery for better understanding, configurable in admin settings.
 - Introduced a new Screensaver feature with image/video/folder/gallery modes, configurable start timeout and slide interval.
 - Added a font configuration section for UI texts so fonts/colors can be set centrally ( fixes #986 )
 - Configurable fixed size for gallery detail images and add toogle to use thumbs in gallery for better loading times
+- Screensaver images and videos can be uploaded to `private/screensavers` through the admin upload page (@reloxx13).
+- Added edge and alignment guides to the photo and collage test pages (@reloxx13).
 
 **Bug fixes**
 
+- Screensaver folder mode: support folder names containing parentheses or apostrophes on initial display and image changes (@reloxx13).
+- GPhoto2 webcam setup: install the required `ffmpeg` dependency (@reloxx13).
+- Remote buzzer: return HTTP 503 for capture and print requests when no client is connected, leaving the trigger armed for retries (@reloxx13).
+- Screensaver folder mode: add a configurable folder path in the admin panel, default to `private/screensavers`, preserve already-prefixed private paths and avoid double URL encoding so custom folders, including names with spaces, load correctly (@alifakbxr, @reloxx13).
 - Selfie rename robustness; chroma preview visibility; loader clearing; hide video background during capture.
 - Installer fixes: PHP PPA validation, permissions/source lists/Wayland flag, unavailable PPA removal, software-properties-common fallback.
 - Printing: copy casting and deprecations, rotate error surfacing, stop-second timing, iOS preview fixes, admin tooltip/label fixes, default path corrections.
 - Rembg typing/logging/error handling; collage/theme path fixes; preview caching; safer uploads/video background handling; collage defaults tightening.
+- Rembg: send model, alpha-matting and post-processing options as multipart form fields so the service applies the configured settings; speed up lossless PNG preparation, clean up temporary files on success and failure, decode responses in memory and avoid decoding the background twice (@fmiccolis).
 - Docs/link cleanups and various deprecation warnings addressed.
+- Printing works again after unlocking a reached print limit; the next lock is set to the following limit boundary (@reloxx13).
+- Reboot and shutdown work when login is disabled; admin/rental authorization is still required when login is enabled (@nbosb).
+- Installer: clone from an accessible working directory when running Git as `www-data`, expose clone errors, and stop silent installation on failure (@reloxx13).
+- Remote buzzer: retry connections when the server is unavailable and update connection state after disconnecting and reconnecting (@reloxx13).
+- Public QR viewer: make the page self-contained and serve previews through the download endpoint so shared asset and image directories do not need to be publicly exposed (@reloxx13).
+- Prevent sticky button hover states on iPad Safari while preserving keyboard focus highlighting (@reloxx13).
+- Correct Linux IP detection when `hostname -I` returns multiple addresses or extra whitespace (@reloxx13).
+- DDEV: keep the npm version bundled with Node.js 20 instead of installing an incompatible latest npm release (@reloxx13).
+- Setup Wizard: correct the PHP upload-limit menu label from 20 MB to 64 MB (@andi34).
+
+**Maintenance**
+
+- Updated PHP/frontend dependencies, development tools and GitHub Actions, including Symfony Config 8.1 and Tailwind CSS/PostCSS updates (@dependabot), with compatibility fixes (@reloxx13).
 
 <hr>
 
