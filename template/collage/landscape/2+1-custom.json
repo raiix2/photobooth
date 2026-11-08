@@ -1,0 +1,23 @@
+{
+  "name": "2+1",
+  "author": "PhotoboothProject",
+  "aspect_ratio": "3:2",
+  "width": "1800",
+  "height": "1200",
+  "layout": [
+    ["63", "38", "825", "550", "0"],
+    ["913", "38", "825", "550", "0"],
+    ["63", "613", "825", "550", "0"]
+  ],
+  "text_alignment": {
+    "mode": "zone",
+    "x": "x*0.5",
+    "y": "y*0.50",
+    "w": "x*0.42",
+    "h": "y*0.42",
+    "align": "center",
+    "valign": "middle",
+    "rotation": 0,
+    "padding": 0
+  }
+}
