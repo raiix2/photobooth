@@ -849,19 +849,9 @@ class Collage
             }
         }
 
-        $bg_r = 255;
-        $bg_g = 255;
-        $bg_b = 255;
-        $bg_color_hex = 0xFFFFFF;
-
         if ($c->collageBackgroundColor !== null) {
             // colors for background and while rotating jpeg images
-            $colorComponents = $imageHandler->getColorComponents($c->collageBackgroundColor);
-            list($bg_r, $bg_g, $bg_b) = $colorComponents;
-            $bg_color_hex = hexdec(substr($c->collageBackgroundColor, 1));
-            if (!is_int($bg_color_hex)) {
-                throw new \Exception('Cannot convert the hexadecimal collage background color to its decimal equivalent!');
-            }
+            $bg_color_hex = "0x" . substr($c->collageBackgroundColor, 1);
         }
 
         if (!is_array($srcPaths)) {
@@ -999,7 +989,7 @@ class Collage
         }
         $lastOutput = strlen($lastOutput) == 0 ? "tmp" . $index - 1 : $lastOutput;
         $overlayArg = "[" . $lastOutput ."]";
-        $overlayArg .= "[vid" . $index ."] overlay=shortest=0:x=" . $x . ":y=" . $y;
+        $overlayArg .= "[vid" . $index ."] overlay=shortest=" . ($lastOutput === "vid0" ? "1" : "0") . ":x=" . $x . ":y=" . $y;
         if(!$isLast) {
             $overlayArg .= " [tmp" . $index . "];";
         }
