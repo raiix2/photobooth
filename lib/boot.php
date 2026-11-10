@@ -11,6 +11,7 @@ use Photobooth\Service\MailService;
 use Photobooth\Service\PrintManagerService;
 use Photobooth\Service\ProcessService;
 use Photobooth\Service\RemoteStorageService;
+use Photobooth\Service\GoogleDriveService;
 use Photobooth\Service\SoundService;
 use Photobooth\Utility\FileUtility;
 use Photobooth\Utility\PathUtility;
@@ -171,6 +172,7 @@ $GLOBALS[DatabaseManagerService::class] = new DatabaseManagerService();
 $GLOBALS[MailService::class] = new MailService();
 $GLOBALS[ProcessService::class] = new ProcessService();
 $GLOBALS[RemoteStorageService::class] = new RemoteStorageService();
+$GLOBALS[GoogleDriveService::class] = new GoogleDriveService();
 
 $config = ConfigurationService::getInstance()->getConfiguration();
 // Collect errors; only display when dev loglevel > 0

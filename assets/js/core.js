@@ -1067,7 +1067,7 @@ const photoBooth = (function () {
         }
 
         // Create collage video if enabled
-        if (config.collage.video_enabled) {
+        if (api.photoStyle === PhotoStyle.COLLAGE && config.collage.video_enabled) {
             photoboothTools
                 .ajaxWithCsrf({
                     method: 'POST',

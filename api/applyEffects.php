@@ -13,6 +13,7 @@ use Photobooth\Processor\ImageProcessor;
 use Photobooth\Service\DatabaseManagerService;
 use Photobooth\Service\LoggerService;
 use Photobooth\Service\RemoteStorageService;
+use Photobooth\Service\GoogleDriveService;
 use Photobooth\Utility\ImageUtility;
 use Photobooth\Utility\PathUtility;
 
@@ -25,6 +26,7 @@ $logger->debug(basename($_SERVER['PHP_SELF']));
 
 $database = DatabaseManagerService::getInstance();
 $remoteStorage = RemoteStorageService::getInstance();
+$googleDrive = GoogleDriveService::getInstance();
 
 $processor = null;
 
@@ -343,6 +345,12 @@ try {
             if ($config['ftp']['create_webpage']) {
                 $remoteStorage->createWebpage();
             }
+        }
+
+        // Store images on google drive
+        if ($config['google_drive']['enabled']) {
+            $logger->debug('Upload to google drive: ' . $vars['resultFile']);
+            $googleDrive->write($vars['resultFile']);
         }
 
         // Change permissions

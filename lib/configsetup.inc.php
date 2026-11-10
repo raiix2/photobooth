@@ -2817,6 +2817,22 @@ return [
             'value' => $config['ftp']['delete'],
         ],
     ],
+    'google_drive' => [
+        'view' => 'advanced',
+        'enabled' => [
+            'view' => 'basic',
+            'type' => 'checkbox',
+            'name' => 'google_drive[enabled]',
+            'value' => $config['google_drive']['enabled'],
+        ],
+        'baseFolder' => [
+            'view' => 'advanced',
+            'type' => 'input',
+            'placeholder' => 'mysite',
+            'name' => 'google_drive[baseFolder]',
+            'value' => $config['google_drive']['baseFolder'],
+        ]
+    ],
     'authentication' => [
         'view' => 'basic',
         'login_enabled' => [

@@ -18,6 +18,7 @@ use Photobooth\Configuration\Section\EventConfiguration;
 use Photobooth\Configuration\Section\FilterConfiguration;
 use Photobooth\Configuration\Section\FtpConfiguration;
 use Photobooth\Configuration\Section\GalleryConfiguration;
+use Photobooth\Configuration\Section\GoogleDriveConfiguration;
 use Photobooth\Configuration\Section\GetRequestConfiguration;
 use Photobooth\Configuration\Section\IconsConfiguration;
 use Photobooth\Configuration\Section\ScreensaverConfiguration;
@@ -88,6 +89,7 @@ class PhotoboothConfiguration implements ConfigurationInterface
                 ->append(VideoConfiguration::getNode())
                 ->append(GalleryConfiguration::getNode())
                 ->append(GetRequestConfiguration::getNode())
+                ->append(GoogleDriveConfiguration::getNode())
                 ->append(ProtectConfiguration::getNode())
                 ->append(ColorsConfiguration::getNode())
                 ->append(FontsConfiguration::getNode())
