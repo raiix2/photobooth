@@ -307,7 +307,7 @@
   "google_drive": "Google Drive",
   "google_drive:baseFolder": "Base folder",
   "google_drive:delete": "Delete image on google drive if deleted on photobooth",
-  "google_drive:enabled": "Enable Google drive upload",
+  "google_drive:enabled": "Enable Google drive upload, ensure rclone is set up for www-data",
   "healthCheck": "Health check",
   "healthError": "ERROR: Please fix mentioned errors to enjoy your Photobooth!",
   "healthGood": "No errors found.",

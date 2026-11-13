@@ -17,11 +17,12 @@ class GoogleDriveService
         $this->logger = LoggerService::getInstance()->getLogger('main');
     }
 
-    public function executeCmd(string $cmd, string $fileName = null): array
+    public function executeCmd(string $cmd, ?string $fileName = null): array
     {
         $storageFilePath = sprintf('Photobooth:%s', $this->config['baseFolder']);
-        $cmd = sprintf('rclone %s %s', $cmd, $storageFilePath . (!is_null($fileName) ? "/" . $fileName : ""));
+        $cmd = sprintf('rclone %s %s/%s', $cmd, $storageFilePath, (!is_null($fileName) ? $fileName : ""));
         exec($cmd, $output, $returnValue);
+        $this->logger->debug('Cmd ' . $cmd);
 
         if ($returnValue != 0) {
             // Handle the exception
@@ -57,7 +58,7 @@ class GoogleDriveService
 
         [$output, $returnValue] = $this->executeCmd('link', $fileName);
 
-        return $output;
+        return $output[0];
     }
 
     public function delete(string $fileName): void

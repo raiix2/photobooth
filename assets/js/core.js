@@ -1147,14 +1147,14 @@ const photoBooth = (function () {
                     api.errorPic({ error: error.message || 'Unexpected error processing picture' });
                 }
             })
-            .fail((jqXHR, textStatus) => {
-                if (photoboothTools.isCsrfErrorResponse(jqXHR)) {
+            .fail((jqXHR, textStatus, errorThrown) => {
+                if (photoboothTools.isCsrfErrorResponse(jqXHR, errorThrown)) {
                     photoboothTools.handleCsrfMismatch(environment.publicFolders.api + '/applyEffects.php');
                     return;
                 }
                 setFiltersEnabled(true);
                 api.errorPic({
-                    error: 'Request failed: ' + textStatus
+                    error: 'Request failed: ' + textStatus + ' ' + errorThrown
                 });
             });
     };

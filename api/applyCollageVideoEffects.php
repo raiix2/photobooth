@@ -7,9 +7,9 @@ require_once '../lib/boot.php';
 use Photobooth\Image;
 use Photobooth\Collage;
 use Photobooth\Enum\FolderEnum;
-use Photobooth\Service\DatabaseManagerService;
+use Photobooth\Service\JsonDatabaseManagerService;
+use Photobooth\Service\GoogleDriveService;
 use Photobooth\Service\LoggerService;
-use Photobooth\Service\RemoteStorageService;
 use Photobooth\Utility\ImageUtility;
 use Photobooth\Utility\PathUtility;
 use Symfony\Component\Filesystem\Filesystem;
@@ -21,8 +21,8 @@ checkCsrfOrFail($_POST);
 $logger = LoggerService::getInstance()->getLogger('main');
 $logger->debug(basename($_SERVER['PHP_SELF']));
 
-$database = DatabaseManagerService::getInstance();
-$remoteStorage = RemoteStorageService::getInstance();
+$jsonDatabase = JsonDatabaseManagerService::getInstance();
+$googleDrive = GoogleDriveService::getInstance();
 
 $processor = null;
 
@@ -66,10 +66,11 @@ $vars['srcVideos'][] = $vars['fileName'];
 
 try {
     $vars['tmpFile'] = FolderEnum::TEMP->absolute() . DIRECTORY_SEPARATOR . $vars['fileName'];
+    $baseName = strtolower(pathinfo($vars['fileName'], PATHINFO_FILENAME));
 
     $vars['collageSrcVideoPaths'] = Collage::getCollageVideoFiles($config['collage'], $vars['tmpFile']);
 
-    $vars['resultFile'] = FolderEnum::VIDEOS->absolute() . DIRECTORY_SEPARATOR . substr($vars['fileName'], 0, -4) . ".mp4";
+    $vars['resultFile'] = FolderEnum::VIDEOS->absolute() . DIRECTORY_SEPARATOR . $baseName . ".mp4";
     [$cmd, $tmpFiles] = Collage::createCollageVideo($config, $vars['collageSrcVideoPaths'], $vars['resultFile']);
     if (is_null($cmd)) {
         throw new \Exception('Error creating collage video.');
@@ -89,6 +90,19 @@ try {
             ];
             $logger->error('createCollageVideo returned with an error code', $errorData);
         }
+
+
+        // Store image on google drive and store url in database
+        if ($config['google_drive']['enabled']) {
+            $logger->debug('Upload to google drive: ' . $vars['resultFile']);
+            $baseName = strtolower(pathinfo($vars['resultFile'], PATHINFO_FILENAME));
+            $videoLink = $googleDrive->write($vars['resultFile']);
+            if ($config['database']['enabled']) {
+                $logger->debug(sprintf('Add to db %s : %s', $baseName, $videoLink));
+                $jsonDatabase->appendImageUrlToDB($baseName, $videoLink);
+            }
+        }
+
     } catch (\Exception $e) {
         $logger->error($e->getMessage());
     }

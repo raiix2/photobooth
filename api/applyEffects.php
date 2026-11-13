@@ -11,6 +11,7 @@ use Photobooth\Enum\FolderEnum;
 use Photobooth\Enum\ImageFilterEnum;
 use Photobooth\Processor\ImageProcessor;
 use Photobooth\Service\DatabaseManagerService;
+use Photobooth\Service\JsonDatabaseManagerService;
 use Photobooth\Service\LoggerService;
 use Photobooth\Service\RemoteStorageService;
 use Photobooth\Service\GoogleDriveService;
@@ -25,6 +26,7 @@ $logger = LoggerService::getInstance()->getLogger('main');
 $logger->debug(basename($_SERVER['PHP_SELF']));
 
 $database = DatabaseManagerService::getInstance();
+$jsonDatabase = JsonDatabaseManagerService::getInstance();
 $remoteStorage = RemoteStorageService::getInstance();
 $googleDrive = GoogleDriveService::getInstance();
 
@@ -347,10 +349,15 @@ try {
             }
         }
 
-        // Store images on google drive
+        // Store image on google drive and store url in database
         if ($config['google_drive']['enabled']) {
             $logger->debug('Upload to google drive: ' . $vars['resultFile']);
-            $googleDrive->write($vars['resultFile']);
+            $baseName = strtolower(pathinfo($vars['resultFile'], PATHINFO_FILENAME));
+            $imageLink = $googleDrive->write($vars['resultFile']);
+            if ($config['database']['enabled']) {
+                $logger->debug(sprintf('Add to db %s : %s', $baseName, $imageLink));
+                $jsonDatabase->appendImageUrlToDB($baseName, $imageLink);
+            }
         }
 
         // Change permissions
@@ -395,6 +402,8 @@ $data = [
     'file' => $vars['fileName'],
     'images' => $vars['srcImages'],
 ];
+
 $logger->debug('effects applied', $data);
 echo json_encode($data);
+
 exit();

@@ -10,6 +10,7 @@ use Photobooth\Enum\FolderEnum;
 use Photobooth\Environment;
 use Photobooth\Service\ConfigurationService;
 use Photobooth\Service\DatabaseManagerService;
+use Photobooth\Service\JsonDatabaseManagerService;
 use Photobooth\Service\ImageMetadataCacheService;
 use Photobooth\Service\LoggerService;
 use Photobooth\Service\MailService;
@@ -81,6 +82,14 @@ if ($action === 'reset') {
             // delete file
             unlink($database->databaseFile);
             $logger->debug($database->databaseFile . ' deleted.');
+        }
+
+        // delete db.txt
+        $database = JsonDatabaseManagerService::getInstance();
+        if (is_file($database->databaseFile)) {
+            // delete file
+            unlink($database->databaseFile);
+            $logger->debug($database->databaseFile . ' json deleted.');
         }
 
         // Clear gallery image metadata cache as media has been removed

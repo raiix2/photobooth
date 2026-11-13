@@ -980,21 +980,21 @@ class Collage
     public static function getVideoOptionArgs(int $x, int $y, int $width, int $height, int $index, bool $inputOffset, string $lastOutput): array
     {
         try {
-        $logger = $logger ?? LoggerService::getInstance()->getLogger('main');
-        // if no bg image is given as an input, take arg 0
-        $inputArg = "[" . $index - ($inputOffset ? 0 : 1) . ":v] setpts=PTS-STARTPTS, scale=" . $width . "x" . $height . " [vid" . $index . "];";
-        $isLast = $lastOutput === "END";
-        if($isLast) {
-            $lastOutput = null;
-        }
-        $lastOutput = strlen($lastOutput) == 0 ? "tmp" . $index - 1 : $lastOutput;
-        $overlayArg = "[" . $lastOutput ."]";
-        $overlayArg .= "[vid" . $index ."] overlay=shortest=1:x=" . $x . ":y=" . $y;
-        if(!$isLast) {
-            $overlayArg .= " [tmp" . $index . "];";
-        }
+            $logger = $logger ?? LoggerService::getInstance()->getLogger('main');
+            // if no bg image is given as an input, take arg 0
+            $inputArg = "[" . $index - ($inputOffset ? 0 : 1) . ":v] setpts=PTS-STARTPTS, scale=" . $width . "x" . $height . " [vid" . $index . "];";
+            $isLast = $lastOutput === "END";
+            if($isLast) {
+                $lastOutput = null;
+            }
+            $lastOutput = strlen($lastOutput) == 0 ? "tmp" . $index - 1 : $lastOutput;
+            $overlayArg = "[" . $lastOutput ."]";
+            $overlayArg .= "[vid" . $index ."] overlay=shortest=0:x=" . $x . ":y=" . $y;
+            if(!$isLast) {
+                $overlayArg .= " [tmp" . $index . "];";
+            }
 
-        return [$inputArg, $overlayArg];
+            return [$inputArg, $overlayArg];
         } catch (\Exception $e) {
             // Handle the exception
             $logger->error($e->getMessage());

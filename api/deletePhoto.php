@@ -7,9 +7,11 @@ require_once '../lib/boot.php';
 use Photobooth\Enum\FolderEnum;
 use Photobooth\FileDelete;
 use Photobooth\Service\DatabaseManagerService;
+use Photobooth\Service\JsonDatabaseManagerService;
 use Photobooth\Service\ImageMetadataCacheService;
 use Photobooth\Service\LoggerService;
 use Photobooth\Service\RemoteStorageService;
+use Photobooth\Service\GoogleDriveService;
 
 header('Content-Type: application/json');
 
@@ -17,6 +19,7 @@ $logger = LoggerService::getInstance()->getLogger('main');
 $logger->debug(basename($_SERVER['PHP_SELF']));
 
 $remoteStorage = RemoteStorageService::getInstance();
+$googleDrive = GoogleDriveService::getInstance();
 
 try {
     if (empty($_POST['file'])) {
@@ -78,11 +81,17 @@ foreach ($filesToDelete as $fileName) {
     if ($config['database']['enabled']) {
         $database = DatabaseManagerService::getInstance();
         $database->deleteContentFromDB($fileName);
+        $jsonDatabase = JsonDatabaseManagerService::getInstance();
+        $jsonDatabase->deleteContentFromDB($fileName);
     }
 
     if ($config['ftp']['enabled'] && $config['ftp']['delete']) {
         $remoteStorage->delete($remoteStorage->getStorageFolder() . '/images/' . $fileName);
         $remoteStorage->delete($remoteStorage->getStorageFolder() . '/thumbs/' . $fileName);
+    }
+
+    if ($config['google_drive']['enabled'] && $config['google_drive']['delete']) {
+        $googleDrive->delete($fileName);
     }
 }
 
