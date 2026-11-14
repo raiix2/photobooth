@@ -92,7 +92,9 @@ foreach ($filesToDelete as $fileName) {
     }
 
     if ($config['google_drive']['enabled'] && $config['google_drive']['delete']) {
-        $googleDrive->delete($fileName);
+        $basename = pathinfo($fileName, PATHINFO_FILENAME);
+        $googleDrive->delete($basename . '.jpg');
+        $googleDrive->delete($basename . '.mp4');
     }
 }
 

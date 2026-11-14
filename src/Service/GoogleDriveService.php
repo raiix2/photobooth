@@ -24,7 +24,7 @@ class GoogleDriveService
         exec($cmd, $output, $returnValue);
         $this->logger->debug('Cmd ' . $cmd);
 
-        if ($returnValue != 0) {
+        if ($cmd !== 'lsf' && $returnValue != 0) {
             // Handle the exception
             $data = [
                 'error' => 'Upload picture command returned an error code',
