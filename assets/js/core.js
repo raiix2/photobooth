@@ -1067,7 +1067,7 @@ const photoBooth = (function () {
         }
 
         // Create collage video if enabled
-        if (api.photoStyle === PhotoStyle.COLLAGE && config.collage.video_enabled) {
+        if (config.collage.video_enabled) {
             photoboothTools
                 .ajaxWithCsrf({
                     method: 'POST',
@@ -1147,14 +1147,14 @@ const photoBooth = (function () {
                     api.errorPic({ error: error.message || 'Unexpected error processing picture' });
                 }
             })
-            .fail((jqXHR, textStatus, errorThrown) => {
-                if (photoboothTools.isCsrfErrorResponse(jqXHR, errorThrown)) {
+            .fail((jqXHR, textStatus) => {
+                if (photoboothTools.isCsrfErrorResponse(jqXHR)) {
                     photoboothTools.handleCsrfMismatch(environment.publicFolders.api + '/applyEffects.php');
                     return;
                 }
                 setFiltersEnabled(true);
                 api.errorPic({
-                    error: 'Request failed: ' + textStatus + ' ' + errorThrown
+                    error: 'Request failed: ' + textStatus
                 });
             });
     };
@@ -1483,6 +1483,29 @@ const photoBooth = (function () {
                 qrResultImage.alt = 'QR-Code';
                 qrResultImage.classList.add('stage-code__image');
                 qrWrapper.append(qrResultImage);
+                if (config.collage.video_enabled && config.google_drive.enabled) {
+                    const qrVideoWrapper = document.createElement('div');
+                    qrVideoWrapper.id = 'resultQRVideo';
+                    qrVideoWrapper.setAttribute('class', 'stage-code right');
+                    const qrResultVideo = document.createElement('img');
+                    qrResultVideo.addEventListener('load', () => {
+                        resultPage.append(qrVideoWrapper);
+                    });
+
+                    qrResultVideo.src =
+                        environment.publicFolders.api + '/qrcode.php?filename=' + filename + '&link=video';
+                    qrResultVideo.alt = 'QR-Code video';
+                    qrResultVideo.classList.add('stage-code__image');
+                    qrVideoWrapper.append(qrResultVideo);
+
+                    const qrVideoShortText = config.qr.video_short_text;
+                    if (qrVideoShortText && qrVideoShortText.length > 0) {
+                        const qrVideoCaption = document.createElement('p');
+                        qrVideoCaption.classList.add('stage-code__caption');
+                        qrVideoCaption.textContent = qrVideoShortText;
+                        qrVideoWrapper.append(qrVideoCaption);
+                    }
+                }
 
                 const qrShortText = config.qr.short_text;
                 if (qrShortText && qrShortText.length > 0) {

@@ -86,22 +86,22 @@ class JsonDatabaseManagerService
 
         $currContent = $this->getContentFromDB();
 
-        if (!array_key_exists($content, $currContent)) {
-            if(!is_null($imageUrl)) {
-                $currContent[$content][DatabaseUtility::IMAGE_URL_KEY] = $imageUrl;
-            }
-            if(!is_null($videoUrl)) {
-                $currContent[$content][DatabaseUtility::VIDEO_URL_KEY] = $videoUrl;
-            }
+        if(!is_null($imageUrl)) {
+            $currContent[$content][DatabaseUtility::IMAGE_URL_KEY] = $imageUrl;
+            $this->logger->debug('Add image');
+        }
+        if(!is_null($videoUrl)) {
+            $currContent[$content][DatabaseUtility::VIDEO_URL_KEY] = $videoUrl;
+            $this->logger->debug('Add video');
+        }
 
-            $encoded = json_encode($currContent);
-            if ($encoded === false) {
-            $this->logger->debug('encode failed : ' . json_last_error_msg());
-                throw new \Exception('Failed to encode database content to JSON: ' . json_last_error_msg());
-            }
-            if (file_put_contents($this->databaseFile, $encoded) === false) {
-                throw new \Exception('Failed to write database file: ' . $this->databaseFile);
-            }
+        $encoded = json_encode($currContent);
+        if ($encoded === false) {
+        $this->logger->debug('encode failed : ' . json_last_error_msg());
+            throw new \Exception('Failed to encode database content to JSON: ' . json_last_error_msg());
+        }
+        if (file_put_contents($this->databaseFile, $encoded) === false) {
+            throw new \Exception('Failed to write database file: ' . $this->databaseFile);
         }
     }
 
@@ -154,6 +154,31 @@ class JsonDatabaseManagerService
 
         return array_key_exists($content, $currContent);
     }
+
+    /**
+     * Retrieves entry from database file
+     */
+    public function getEntryFromDB(string $key): array
+    {
+        if (!$key) {
+            throw new \Exception('Invalid key.');
+        }
+
+        // check if the database file is defined and non-empty
+        if (!isset($this->databaseFile) || empty($this->databaseFile)) {
+            throw new \Exception('Database not defined.');
+        }
+
+        $currContent = $this->getContentFromDB();
+        $entry = $currContent[$key];
+        if(!$entry) {
+            throw new \Exception('Key not found.');
+        }
+
+        return $entry;
+    }
+
+
 
     /**
      * Returns the size of the database file in bytes.

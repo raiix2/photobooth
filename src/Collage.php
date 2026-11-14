@@ -987,7 +987,7 @@ class Collage
             if($isLast) {
                 $lastOutput = null;
             }
-            $lastOutput = strlen($lastOutput) == 0 ? "tmp" . $index - 1 : $lastOutput;
+            $lastOutput = empty($lastOutput) ? "tmp" . $index - 1 : $lastOutput;
             $overlayArg = "[" . $lastOutput ."]";
             $overlayArg .= "[vid" . $index ."] overlay=shortest=0:x=" . $x . ":y=" . $y;
             if(!$isLast) {

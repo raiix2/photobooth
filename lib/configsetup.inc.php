@@ -2831,7 +2831,13 @@ return [
             'placeholder' => 'mysite',
             'name' => 'google_drive[baseFolder]',
             'value' => $config['google_drive']['baseFolder'],
-        ]
+        ],
+        'delete' => [
+            'view' => 'advanced',
+            'type' => 'checkbox',
+            'name' => 'google_drive[delete]',
+            'value' => $config['google_drive']['delete'],
+        ],
     ],
     'authentication' => [
         'view' => 'basic',

@@ -99,7 +99,7 @@ try {
             $videoLink = $googleDrive->write($vars['resultFile']);
             if ($config['database']['enabled']) {
                 $logger->debug(sprintf('Add to db %s : %s', $baseName, $videoLink));
-                $jsonDatabase->appendImageUrlToDB($baseName, $videoLink);
+                $jsonDatabase->appendVideoUrlToDB($baseName, $videoLink);
             }
         }
 

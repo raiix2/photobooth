@@ -40,6 +40,7 @@ $fileBaseName = pathinfo($file, PATHINFO_FILENAME);
 $filesToDelete = [$file];
 $paths = [
     FolderEnum::IMAGES->absolute(),
+    FolderEnum::VIDEOS->absolute(),
     FolderEnum::THUMBS->absolute(),
     FolderEnum::KEYING->absolute(),
 ];
